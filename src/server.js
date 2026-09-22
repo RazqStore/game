@@ -173,7 +173,9 @@ route('POST', '/api/room/ready', async (req, res) => {
   const user = currentUser(req);
   if (!user) return sendJson(res, 401, { error: 'يجب تسجيل الدخول' });
   const room = mm.getRoomByUser(user.id);
-  if (room) mm.setReady(room, user.id);
+  if (!room) return sendJson(res, 409, { error: 'مالقيناك بأي غرفة - رجع لصفحة اللعبة وابحث عن لاعبين من جديد' });
+  if (room.phase !== 'ready') return sendJson(res, 200, { ok: true, alreadyStarted: true });
+  mm.setReady(room, user.id);
   sendJson(res, 200, { ok: true });
 });
 

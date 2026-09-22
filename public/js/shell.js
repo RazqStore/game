@@ -125,8 +125,17 @@ const RZShell = (() => {
     const btn = el('ready-btn');
     if (btn && !iAmReady) btn.onclick = async () => {
       RZ.sound.ready();
-      btn.disabled = true; btn.textContent = 'بالانتظار...';
-      await api('/api/room/ready');
+      btn.disabled = true; btn.textContent = 'جاري الإرسال...';
+      const result = await api('/api/room/ready');
+      if (result._networkFail || result.error) {
+        // didn't actually register - let them retry instead of freezing forever
+        btn.disabled = false;
+        btn.textContent = 'أنا جاهز';
+        RZ.toast(result.error || 'تعذر الاتصال بالسيرفر، جرب مرة ثانية');
+        if (result.error && !result._networkFail && /مالقيناك/.test(result.error)) idleStage();
+        return;
+      }
+      btn.textContent = 'بالانتظار...';
     };
   }
 
